@@ -1,1491 +1,377 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Dart Score</title>
-  <style>
-    :root {
-      --background: #0f0f0f;
-      --foreground: #fafafa;
-      --card: #1a1a1a;
-      --card-foreground: #fafafa;
-      --muted: #262626;
-      --muted-foreground: #a3a3a3;
-      --accent: #fbbf24;
-      --accent-foreground: #0f0f0f;
-      --primary: #22c55e;
-      --primary-foreground: #fafafa;
-      --border: #333;
-      --destructive: #ef4444;
-      --dartboard-green: #0d9653;
-      --dartboard-red: #d32f2f;
-      --dartboard-cream: #f5e6c8;
-      --dartboard-black: #1a1a1a;
-      --dartboard-wire: #a0a0a0;
-      --player-1: #ef4444;
-      --player-2: #3b82f6;
-      --player-3: #22c55e;
-      --player-4: #eab308;
-      --player-5: #a855f7;
-      --player-6: #f97316;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--background);
-      color: var(--foreground);
-      min-height: 100vh;
-      touch-action: manipulation;
-    }
-
-    .hidden { display: none !important; }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: none;
-      min-height: 48px;
-      padding: 12px 20px;
-      font-size: 16px;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: var(--primary-foreground);
-    }
-
-    .btn-outline {
-      background: transparent;
-      border: 2px solid var(--border);
-      color: var(--foreground);
-    }
-
-    .btn-outline.active {
-      border-color: var(--primary);
-      background: rgba(34, 197, 94, 0.2);
-    }
-
-    .btn-danger {
-      background: var(--destructive);
-      color: white;
-    }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--foreground);
-    }
-
-    .btn:active {
-      transform: scale(0.97);
-      opacity: 0.9;
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* Inputs */
-    input {
-      width: 100%;
-      height: 48px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 2px solid var(--border);
-      background: var(--card);
-      color: var(--foreground);
-      font-size: 16px;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    /* Setup Screen */
-    #setup-screen {
-      min-height: 100vh;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .logo-icon {
-      width: 80px;
-      height: 80px;
-      background: rgba(34, 197, 94, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      font-size: 40px;
-    }
-
-    .logo h1 {
-      font-size: 32px;
-      margin-bottom: 8px;
-    }
-
-    .logo p {
-      color: var(--muted-foreground);
-      font-size: 18px;
-    }
-
-    .section-title {
-      font-size: 20px;
-      color: var(--accent);
-      margin-bottom: 16px;
-    }
-
-    .game-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 32px;
-    }
-
-    .game-btn {
-      padding: 16px;
-      border-radius: 12px;
-      border: 2px solid var(--border);
-      background: var(--card);
-      color: var(--foreground);
-      font-size: 20px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .game-btn.selected {
-      border-color: var(--primary);
-      background: rgba(34, 197, 94, 0.2);
-      box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
-    }
-
-    .players-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .player-controls {
-      display: flex;
-      gap: 8px;
-    }
-
-    .player-control-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
-      border: 2px solid var(--border);
-      background: transparent;
-      color: var(--foreground);
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    .player-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      flex: 1;
-      margin-bottom: 24px;
-    }
-
-    .player-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .player-color {
-      width: 12px;
-      height: 48px;
-      border-radius: 6px;
-    }
-
-    .start-btn {
-      width: 100%;
-      height: 64px;
-      font-size: 20px;
-      gap: 8px;
-    }
-
-    /* Game Screen */
-    #game-screen {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .game-header {
-      background: var(--card);
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .game-header h1 {
-      font-size: 24px;
-      color: var(--accent);
-    }
-
-    .game-header p {
-      color: var(--muted-foreground);
-    }
-
-    .game-header p span {
-      color: var(--foreground);
-      font-weight: 600;
-    }
-
-    .close-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: transparent;
-      border: none;
-      color: var(--foreground);
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    /* Player Scores */
-    .player-scores {
-      padding: 16px 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .player-score-card {
-      padding: 12px;
-      border-radius: 12px;
-      background: var(--muted);
-      border: 2px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s;
-    }
-
-    .player-score-card.current {
-      background: var(--card);
-      animation: pulse-gold 2s infinite;
-    }
-
-    .player-score-card.finished {
-      background: rgba(251, 191, 36, 0.1);
-      border-color: rgba(251, 191, 36, 0.3);
-      opacity: 0.6;
-    }
-
-    @keyframes pulse-gold {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
-      50% { box-shadow: 0 0 20px 4px rgba(251, 191, 36, 0.2); }
-    }
-
-    .player-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .player-badge {
-      width: 12px;
-      height: 32px;
-      border-radius: 6px;
-    }
-
-    .placement-badge {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(251, 191, 36, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    .player-name {
-      font-weight: 600;
-      font-size: 18px;
-    }
-
-    .player-placement-text {
-      font-size: 12px;
-      color: var(--accent);
-    }
-
-    .current-throws {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .throw-tag {
-      padding: 2px 8px;
-      border-radius: 4px;
-      background: rgba(34, 197, 94, 0.2);
-      color: var(--primary);
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .throw-tag.empty {
-      background: var(--muted);
-      color: var(--muted-foreground);
-      cursor: default;
-    }
-
-    .player-score {
-      font-size: 32px;
-      font-weight: 700;
-      font-family: 'Courier New', monospace;
-    }
-
-    .player-score.current {
-      color: var(--accent);
-      text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
-    }
-
-    /* Cricket Marks */
-    .cricket-marks {
-      display: flex;
-      gap: 8px;
-      font-size: 14px;
-    }
-
-    .cricket-mark {
-      text-align: center;
-      width: 24px;
-    }
-
-    .cricket-mark-label {
-      color: var(--muted-foreground);
-      font-size: 12px;
-    }
-
-    .cricket-mark-value {
-      font-weight: 700;
-    }
-
-    /* Input Mode Toggle */
-    .input-toggle {
-      display: flex;
-      gap: 8px;
-      padding: 0 16px 12px;
-    }
-
-    .input-toggle .btn {
-      flex: 1;
-    }
-
-    /* Input Area */
-    .input-area {
-      flex: 1;
-      padding: 0 16px 16px;
-      overflow: auto;
-    }
-
-    /* Alert */
-    .alert {
-      padding: 16px;
-      border-radius: 12px;
-      background: rgba(251, 191, 36, 0.1);
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .alert-icon {
-      font-size: 24px;
-    }
-
-    .alert-text {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    /* Score Buttons */
-    .score-mode-toggle {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .multiplier-toggle {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .score-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .score-btn {
-      height: 52px;
-      border-radius: 8px;
-      border: 2px solid var(--border);
-      background: transparent;
-      color: var(--foreground);
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .score-btn:active {
-      background: rgba(255, 255, 255, 0.1);
-      transform: scale(0.95);
-    }
-
-    .special-scores {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .special-scores .btn-25 {
-      background: rgba(13, 150, 83, 0.2);
-      border-color: var(--dartboard-green);
-    }
-
-    .special-scores .btn-bull {
-      background: rgba(211, 47, 47, 0.2);
-      border-color: var(--dartboard-red);
-    }
-
-    /* Keypad */
-    .keypad-display {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      margin-bottom: 12px;
-    }
-
-    .keypad-value {
-      font-size: 40px;
-      font-weight: 700;
-      font-family: 'Courier New', monospace;
-      color: var(--accent);
-    }
-
-    .keypad-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .keypad-btn {
-      height: 56px;
-      border-radius: 8px;
-      border: 2px solid var(--border);
-      background: transparent;
-      color: var(--foreground);
-      font-size: 24px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .keypad-btn:active {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .keypad-btn.danger {
-      background: var(--destructive);
-      border-color: var(--destructive);
-      color: white;
-    }
-
-    .keypad-btn.primary {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: white;
-    }
-
-    /* Dartboard */
-    .dartboard-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    #dartboard {
-      border-radius: 50%;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    }
-
-    .miss-btn {
-      padding: 12px 32px;
-      background: var(--muted);
-      border: none;
-      border-radius: 8px;
-      color: var(--foreground);
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    /* Action Buttons */
-    .action-bar {
-      padding: 16px;
-      background: var(--card);
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 12px;
-    }
-
-    .action-bar .btn {
-      flex: 1;
-      height: 52px;
-    }
-
-    /* Results Screen */
-    .results-screen {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      animation: slide-up 0.3s ease-out;
-    }
-
-    @keyframes slide-up {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .trophy-icon {
-      width: 96px;
-      height: 96px;
-      background: rgba(251, 191, 36, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48px;
-      margin-bottom: 24px;
-    }
-
-    .results-title {
-      font-size: 28px;
-      color: var(--accent);
-      margin-bottom: 24px;
-    }
-
-    .placement-list {
-      width: 100%;
-      max-width: 400px;
-      margin-bottom: 32px;
-    }
-
-    .placement-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      background: var(--card);
-    }
-
-    .placement-item.first {
-      background: rgba(251, 191, 36, 0.2);
-      border: 2px solid var(--accent);
-    }
-
-    .placement-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .placement-number {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--muted-foreground);
-    }
-
-    .placement-number.first {
-      color: var(--accent);
-    }
-
-    .placement-name {
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    /* Continue Dialog */
-    .continue-dialog {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      animation: slide-up 0.3s ease-out;
-    }
-
-    .medal-icon {
-      width: 80px;
-      height: 80px;
-      background: rgba(251, 191, 36, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      margin-bottom: 16px;
-    }
-
-    .continue-place {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--accent);
-      margin-bottom: 4px;
-    }
-
-    .continue-name {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 24px;
-    }
-
-    .continue-text {
-      color: var(--muted-foreground);
-      margin-bottom: 24px;
-      text-align: center;
-    }
-
-    .continue-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-      max-width: 300px;
-    }
-
-    .continue-buttons .btn {
-      height: 56px;
-      font-size: 18px;
-    }
-
-    /* Edit Dialog */
-    .dialog-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      z-index: 100;
-    }
-
-    .dialog {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 24px;
-      width: 100%;
-      max-width: 360px;
-      animation: slide-up 0.2s ease-out;
-    }
-
-    .dialog-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .dialog-title {
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .dialog-close {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: transparent;
-      border: none;
-      color: var(--foreground);
-      font-size: 20px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Darty Pro - Tournament Edition</title>
+    <style>
+        :root { --primary: #27ae60; --dark: #2c3e50; --bg: #f4f7f6; --gray: #bdc3c7; --accent: #2980b9; --danger: #e74c3c; }
+        * { user-select: none; -webkit-user-select: none; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; background-color: var(--bg); touch-action: pan-y; overflow-x: hidden; padding-bottom: 100px; }
+        
+        #setup, .overlay-screen { max-width: 450px; margin: 10px auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .overlay-screen { position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 95%; height: 90vh; z-index: 5000; display: none; overflow-y: auto; margin-top: 5vh; border: 1px solid #ddd; }
+        
+        .menu-btns { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn-menu { flex: 1; padding: 12px; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+
+        .record-item { background: #f9f9f9; border: 1px solid #ddd; padding: 12px; margin-bottom: 8px; border-radius: 10px; text-align: left; cursor: pointer; }
+        .record-details { background: #eee; padding: 10px; border-radius: 8px; margin-top: 5px; font-size: 0.85rem; line-height: 1.4; }
+        
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .stats-table th, .stats-table td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        .stats-table th { background: #f2f2f2; }
+
+        .scoreboard { display: flex; overflow-x: auto; padding: 15px 0; gap: 12px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .player { min-width: 140px; padding: 12px; background: white; border-radius: 15px; border: 3px solid transparent; flex: 0 0 auto; box-shadow: 0 3px 5px rgba(0,0,0,0.05); transition: 0.3s; }
+        .player.current { border-color: var(--primary); transform: scale(1.05); }
+        .player.finished { opacity: 0.5; background: #dcdde1; }
+        .player-score { font-size: 1.8rem; font-weight: 900; color: var(--dark); }
+        .legs-count { font-size: 0.8rem; color: #e67e22; font-weight: bold; }
+
+        .spacer { min-width: calc(50vw - 78px); flex: 0 0 auto; pointer-events: none; }
+        .turn-info { background: var(--dark); color: white; padding: 10px; }
+        .buttons { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; max-width: 520px; margin: 10px auto; padding: 0 10px; }
+        .btn-dart { padding: 15px 0; border: 1px solid #ddd; border-radius: 8px; background: white; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn-spec { background: #16a085; color: white; }
+        .btn-bull { background: #27ae60; color: white; grid-column: span 3; }
+        .btn-zero { background: #95a5a6; color: white; grid-column: span 4; }
+        
+        #nextTurnPanel {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 95px;
+            background: white; border-top: 2px solid #ddd; display: none; 
+            justify-content: center; align-items: center; z-index: 4000;
+        }
+        .big-next-btn {
+            width: 90%; height: 65px; background: var(--gray); color: white; border: none;
+            font-size: 1.4rem; font-weight: bold; border-radius: 15px;
+            transition: 0.2s; pointer-events: none;
+        }
+        .big-next-btn.ready { background: var(--primary); pointer-events: auto; animation: bounce 0.3s ease; }
+        @keyframes bounce { 0% {transform: scale(0.95);} 100% {transform: scale(1);} }
+
+        #floatingMultipliers { 
+            position: fixed; display: none; gap: 12px; z-index: 2000; 
+            padding: 12px; background: white; border-radius: 40px; border: 2px solid var(--dark);
+            width: 220px; justify-content: center;
+        }
+        .mult-pop { width: 55px; height: 55px; border-radius: 50%; border: none; color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+        
+        .btn-ctrl { padding: 15px; border-radius: 10px; border: none; color: white; font-weight: bold; flex: 1; }
+        .row { display: flex; gap: 10px; width: 100%; max-width: 400px; margin: 5px auto; }
+        select, input { width: 90%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; }
+    </style>
 </head>
 <body>
-  <!-- Setup Screen -->
-  <div id="setup-screen">
-    <div class="logo">
-      <div class="logo-icon">🎯</div>
-      <h1>Dart Score</h1>
-      <p>Wybierz grę i graczy</p>
+
+<div id="setup">
+    <h2>🎯 Dart Counter Pro</h2>
+    <div class="menu-btns">
+        <button class="btn-menu" style="background:var(--accent)" onclick="showHistory()">📜 HISTORIA</button>
+        <button class="btn-menu" style="background:#8e44ad" onclick="showStats()">📊 STATYSTYKI</button>
     </div>
-
-    <h2 class="section-title">Wybierz grę</h2>
-    <div class="game-grid" id="game-grid"></div>
-
-    <div class="players-header">
-      <h2 class="section-title">Gracze (<span id="player-count">2</span>/6)</h2>
-      <div class="player-controls">
-        <button class="player-control-btn" id="remove-player">−</button>
-        <button class="player-control-btn" id="add-player">+</button>
-      </div>
+    <select id="gameType"><option value="301">301</option><option value="501" selected>501</option><option value="701">701</option><option value="901">901</option></select>
+    <select id="numPlayers" onchange="initPlayerInputs()">
+        <option value="1">1 Gracz</option><option value="2" selected>2 Graczy</option>
+        <option value="3">3 Graczy</option><option value="4">4 Graczy</option>
+        <option value="5">5 Graczy</option><option value="6">6 Graczy</option>
+    </select>
+    <div style="font-size:0.9rem; margin:10px 0;">
+        Turniej: <input type="checkbox" id="tourMode" style="width:20px" onchange="$('legInput').style.display = this.checked ? 'block' : 'none'">
+        <span id="legInput" style="display:none;"> do <input type="number" id="legsToWin" value="3" style="width:50px"> legów</span>
     </div>
+    <div style="font-size:0.8rem; margin-bottom:10px;"><input type="checkbox" id="doubleOut" style="width:auto"> Double Out</div>
+    <div id="playerNames"></div>
+    <button onclick="startNewGame()" style="background:var(--primary); color:white; width:90%; padding:15px; border:none; border-radius:10px; font-weight:bold; margin-top:10px;">ROZPOCZNIJ GRĘ</button>
+</div>
 
-    <div class="player-list" id="player-list"></div>
+<div id="historyView" class="overlay-screen">
+    <h3>📜 Historia Gier</h3>
+    <button class="btn-menu" style="background:var(--danger); margin-bottom: 10px;" onclick="clearLogs()">WYCZYŚĆ HISTORIĘ</button>
+    <div id="historyContent"></div>
+    <button class="btn-ctrl" style="background:var(--dark); width:100%; margin-top:20px;" onclick="closeOverlays()">ZAMKNIJ</button>
+</div>
 
-    <button class="btn btn-primary start-btn" id="start-btn" disabled>
-      ▶ Rozpocznij grę
-    </button>
-  </div>
+<div id="statsView" class="overlay-screen">
+    <h3>📊 Ranking Graczy</h3>
+    <button class="btn-menu" style="background:var(--danger); margin-bottom: 10px;" onclick="clearLogs()">WYCZYŚĆ STATYSTYKI</button>
+    <div id="statsContent"></div>
+    <button class="btn-ctrl" style="background:var(--dark); width:100%; margin-top:20px;" onclick="closeOverlays()">ZAMKNIJ</button>
+</div>
 
-  <!-- Game Screen -->
-  <div id="game-screen" class="hidden">
-    <div class="game-header">
-      <div>
-        <h1 id="game-title">501</h1>
-        <p>Tura: <span id="current-player-name">Gracz 1</span></p>
-      </div>
-      <button class="close-btn" id="end-game-btn">✕</button>
+<div id="game" style="display:none;">
+    <div class="scoreboard" id="scoreboard"></div>
+    <div class="turn-info">
+        <div id="currentPlayerName">---</div>
+        <div style="font-size: 1.3rem;"><strong id="turnTotal">0</strong> (<span id="throwCount">0/3</span>)</div>
+        <div id="throwHistory" style="font-size: 0.9rem; color:#bdc3c7; margin-top:3px; height:1.2rem;"></div>
     </div>
-
-    <div class="player-scores" id="player-scores"></div>
-
-    <div class="input-toggle">
-      <button class="btn btn-outline active" id="btn-buttons">⊞ Przyciski</button>
-      <button class="btn btn-outline" id="btn-dartboard">◎ Tarcza</button>
+    <div class="buttons" id="dartButtons"></div>
+    <div class="controls">
+        <div id="endGameArea"></div>
+        <div class="row">
+            <button class="btn-ctrl" style="background:#e67e22" onclick="undoLastThrow()">Cofnij</button>
+            <button class="btn-ctrl" style="background:#7f8c8d" onclick="confirmExit()">Menu</button>
+        </div>
     </div>
+</div>
 
-    <div class="input-area" id="input-area"></div>
+<div id="nextTurnPanel">
+    <button id="bigNextBtn" class="big-next-btn" onclick="finishTurn()">NASTĘPNY GRACZ ➔</button>
+</div>
 
-    <div class="action-bar">
-      <button class="btn btn-outline" id="undo-btn" disabled>↶ Cofnij</button>
-      <button class="btn btn-primary" id="next-btn">▶ Następny</button>
-    </div>
-  </div>
+<div id="floatingMultipliers">
+    <button class="mult-pop" style="background:#3498db" onclick="handleMult(1)">x1</button>
+    <button class="mult-pop" style="background:#e67e22" onclick="handleMult(2)">x2</button>
+    <button class="mult-pop" style="background:#e74c3c" onclick="handleMult(3)">x3</button>
+</div>
 
-  <!-- Edit Dialog -->
-  <div id="edit-dialog" class="dialog-overlay hidden">
-    <div class="dialog">
-      <div class="dialog-header">
-        <span class="dialog-title">Popraw rzut <span id="edit-throw-index">1</span></span>
-        <button class="dialog-close" id="close-edit-dialog">✕</button>
-      </div>
-      <div id="edit-score-buttons"></div>
-    </div>
-  </div>
+<script>
+const STATE_KEY = 'dart_v23_state';
+const LOG_KEY = 'dart_v23_logs';
+let gameState = null;
+let turnThrows = [];
+let activeBase = null;
+let longPressTimer = null;
+let touchStart = { x: 0, y: 0 };
+let movedDist = 0;
+let legWinner = null;
+let safetyTimer = null;
 
-  <script>
-    // Constants
-    const DART_SEGMENTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-    const GAME_NAMES = {
-      '301': '301',
-      '501': '501',
-      '701': '701',
-      '901': '901',
-      'cricket': 'Cricket',
-      'around-the-clock': 'Dookoła Zegara'
+function $(id) { return document.getElementById(id); }
+function closeOverlays() { $('historyView').style.display = 'none'; $('statsView').style.display = 'none'; }
+
+function clearLogs() {
+    if(confirm("Czy na pewno chcesz usunąć całą historię i statystyki?")) {
+        localStorage.removeItem(LOG_KEY);
+        closeOverlays();
+        alert("Dane wyczyszczone.");
+    }
+}
+
+function initPlayerInputs() {
+    const n = parseInt($('numPlayers').value);
+    const container = $('playerNames'); container.innerHTML = '';
+    for (let i = 1; i <= n; i++) {
+        const input = document.createElement('input');
+        input.placeholder = `Gracz ${i}`;
+        input.id = `pName${i}`;
+        input.value = localStorage.getItem(`dart_name_${i}`) || '';
+        container.appendChild(input);
+    }
+}
+
+function startNewGame() {
+    const players = [];
+    const now = new Date();
+    for (let i = 1; i <= parseInt($('numPlayers').value); i++) {
+        const name = $(`pName${i}`).value.trim() || `Gracz ${i}`;
+        localStorage.setItem(`dart_name_${i}`, name);
+        players.push({ name, score: parseInt($('gameType').value), startScore: parseInt($('gameType').value), totalPoints:0, turns:0, isOut:false, legsWon: 0, dartsThrown: 0, rank: 0 });
+    }
+    gameState = { 
+        gameType: parseInt($('gameType').value), players, currentPlayer:0, 
+        doubleOut: $('doubleOut').checked, tourMode: $('tourMode').checked, 
+        legsToWin: parseInt($('legsToWin').value),
+        startTime: now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        finishedPlayers: 0
     };
-    const PLAYER_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f97316'];
+    loadGameUI();
+}
 
-    // State
-    let gameState = null;
-    let selectedGame = null;
-    let playerNames = ['Gracz 1', 'Gracz 2'];
-    let inputMode = 'buttons';
-    let scoreMode = 'numbers';
-    let multiplier = 1;
-    let keypadValue = '';
-    let editingThrowIndex = null;
+function saveFinalRecord() {
+    let logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+    const record = {
+        date: gameState.startTime,
+        type: gameState.gameType + (gameState.tourMode ? ' (Turniej)' : ' (Mecz)'),
+        players: gameState.players.map(p => ({
+            name: p.name, rank: p.rank || (gameState.finishedPlayers + 1), darts: p.dartsThrown, legs: p.legsWon
+        })).sort((a,b) => a.rank - b.rank)
+    };
+    logs.unshift(record);
+    localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(0, 100)));
+}
 
-    // Load from localStorage
-    function loadState() {
-      const saved = localStorage.getItem('dart-current-game');
-      if (saved) {
-        gameState = JSON.parse(saved);
-        // Ensure backwards compatibility
-        if (!gameState.finishedPlayerIds) gameState.finishedPlayerIds = [];
-        if (!gameState.placements) gameState.placements = [];
-        if (!gameState.acknowledgedPlaces) gameState.acknowledgedPlaces = 0;
-      }
-    }
+function showHistory() {
+    const logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+    $('historyContent').innerHTML = logs.map((l, idx) => `
+        <div class="record-item" onclick="toggleDetails(${idx})">
+            <strong>📅 ${l.date}</strong> - ${l.type}
+            <div id="details-${idx}" class="record-details" style="display:none">
+                ${l.players.map(p => `<b>${p.rank}. ${p.name}</b> - rzuty: ${p.darts} ${l.type.includes('Turniej') ? `(Legi: ${p.legs})` : ''}`).join('<br>')}
+            </div>
+        </div>
+    `).join('') || 'Brak historii.';
+    $('historyView').style.display = 'block';
+}
 
-    function saveState() {
-      if (gameState) {
-        localStorage.setItem('dart-current-game', JSON.stringify(gameState));
-      } else {
-        localStorage.removeItem('dart-current-game');
-      }
-    }
+function toggleDetails(idx) {
+    const el = $(`details-${idx}`);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
 
-    // ID Generator
-    function generateId() {
-      return Math.random().toString(36).substr(2, 9);
-    }
-
-    // Initial Score
-    function getInitialScore(gameType) {
-      switch (gameType) {
-        case '301': return 301;
-        case '501': return 501;
-        case '701': return 701;
-        case '901': return 901;
-        default: return 0;
-      }
-    }
-
-    // Create Player
-    function createPlayer(name, gameType) {
-      return {
-        id: generateId(),
-        name,
-        score: getInitialScore(gameType),
-        throws: [],
-        cricketMarks: gameType === 'cricket' ? { 20: 0, 19: 0, 18: 0, 17: 0, 16: 0, 15: 0, bull: 0 } : undefined,
-        clockPosition: gameType === 'around-the-clock' ? 1 : undefined
-      };
-    }
-
-    // Start Game
-    function startGame(type, names) {
-      gameState = {
-        id: generateId(),
-        type,
-        players: names.map(name => createPlayer(name, type)),
-        currentPlayerIndex: 0,
-        currentRoundThrows: [],
-        isFinished: false,
-        startedAt: Date.now(),
-        finishedPlayerIds: [],
-        placements: [],
-        acknowledgedPlaces: 0
-      };
-      saveState();
-      renderGame();
-    }
-
-    // Add Throw
-    function addThrow(value, mult) {
-      if (!gameState || gameState.isFinished) return;
-      if (gameState.currentRoundThrows.length >= 3) return;
-      
-      const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-      if (gameState.finishedPlayerIds.includes(currentPlayer.id)) return;
-
-      const dartThrow = { value, multiplier: mult, timestamp: Date.now() };
-      const totalValue = value * mult;
-
-      let isWinner = false;
-
-      switch (gameState.type) {
-        case '301':
-        case '501':
-        case '701':
-        case '901': {
-          const newScore = currentPlayer.score - totalValue;
-          if (newScore === 0) {
-            currentPlayer.score = 0;
-            isWinner = true;
-          } else if (newScore > 0) {
-            currentPlayer.score = newScore;
-          }
-          break;
-        }
-        case 'cricket': {
-          if (currentPlayer.cricketMarks) {
-            const segment = value === 25 || value === 50 ? 'bull' : value;
-            if (segment === 'bull' || [15, 16, 17, 18, 19, 20].includes(segment)) {
-              currentPlayer.cricketMarks[segment] = Math.min(3, currentPlayer.cricketMarks[segment] + mult);
-              const marks = currentPlayer.cricketMarks;
-              const allClosed = marks[20] >= 3 && marks[19] >= 3 && marks[18] >= 3 &&
-                marks[17] >= 3 && marks[16] >= 3 && marks[15] >= 3 && marks.bull >= 3;
-              if (allClosed) isWinner = true;
+function showStats() {
+    const logs = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
+    const stats = {};
+    logs.forEach(l => {
+        l.players.forEach(p => {
+            if (!stats[p.name]) stats[p.name] = { games: 0, tour: 0 };
+            if (p.rank === 1) {
+                if (l.type.includes('Turniej')) stats[p.name].tour++;
+                else stats[p.name].games++;
             }
-          }
-          break;
-        }
-        case 'around-the-clock': {
-          if (currentPlayer.clockPosition !== undefined) {
-            const targetValue = currentPlayer.clockPosition === 21 ? 25 : currentPlayer.clockPosition;
-            if (value === targetValue || (currentPlayer.clockPosition === 21 && (value === 25 || value === 50))) {
-              currentPlayer.clockPosition++;
-              if (currentPlayer.clockPosition > 21) isWinner = true;
-            }
-          }
-          break;
-        }
-      }
-
-      currentPlayer.throws.push(dartThrow);
-      gameState.currentRoundThrows.push(dartThrow);
-
-      if (isWinner && !gameState.finishedPlayerIds.includes(currentPlayer.id)) {
-        gameState.finishedPlayerIds.push(currentPlayer.id);
-        gameState.placements.push({ playerId: currentPlayer.id, place: gameState.placements.length + 1 });
-        gameState.winnerId = currentPlayer.id;
-      }
-
-      // Check if game is finished
-      const remainingPlayers = gameState.players.filter(p => !gameState.finishedPlayerIds.includes(p.id));
-      if (remainingPlayers.length <= 1) {
-        if (remainingPlayers.length === 1) {
-          gameState.placements.push({ playerId: remainingPlayers[0].id, place: gameState.placements.length + 1 });
-        }
-        gameState.isFinished = true;
-        gameState.finishedAt = Date.now();
-      }
-
-      saveState();
-      renderGame();
-    }
-
-    // Undo Last Throw
-    function undoLastThrow() {
-      if (!gameState || gameState.currentRoundThrows.length === 0) return;
-
-      const removedThrow = gameState.currentRoundThrows.pop();
-      const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-      currentPlayer.throws.pop();
-
-      if (['301', '501', '701', '901'].includes(gameState.type) && removedThrow) {
-        currentPlayer.score += removedThrow.value * removedThrow.multiplier;
-      }
-
-      saveState();
-      renderGame();
-    }
-
-    // Edit Throw
-    function editThrow(index, newValue, newMultiplier) {
-      if (!gameState || index < 0 || index >= gameState.currentRoundThrows.length) return;
-
-      const oldThrow = gameState.currentRoundThrows[index];
-      const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-      
-      gameState.currentRoundThrows[index] = { value: newValue, multiplier: newMultiplier, timestamp: Date.now() };
-      
-      const playerThrowIndex = currentPlayer.throws.length - gameState.currentRoundThrows.length + index;
-      currentPlayer.throws[playerThrowIndex] = { value: newValue, multiplier: newMultiplier, timestamp: Date.now() };
-
-      if (['301', '501', '701', '901'].includes(gameState.type)) {
-        const oldTotal = oldThrow.value * oldThrow.multiplier;
-        const newTotal = newValue * newMultiplier;
-        currentPlayer.score += oldTotal - newTotal;
-      }
-
-      saveState();
-      renderGame();
-    }
-
-    // Next Player
-    function nextPlayer() {
-      if (!gameState) return;
-
-      let nextIndex = (gameState.currentPlayerIndex + 1) % gameState.players.length;
-      let attempts = 0;
-      while (gameState.finishedPlayerIds.includes(gameState.players[nextIndex].id) && attempts < gameState.players.length) {
-        nextIndex = (nextIndex + 1) % gameState.players.length;
-        attempts++;
-      }
-
-      gameState.currentPlayerIndex = nextIndex;
-      gameState.currentRoundThrows = [];
-      saveState();
-      renderGame();
-    }
-
-    // Continue Game
-    function continueGame() {
-      if (!gameState) return;
-
-      let nextIndex = gameState.currentPlayerIndex;
-      if (gameState.finishedPlayerIds.includes(gameState.players[nextIndex].id)) {
-        nextIndex = (nextIndex + 1) % gameState.players.length;
-        let attempts = 0;
-        while (gameState.finishedPlayerIds.includes(gameState.players[nextIndex].id) && attempts < gameState.players.length) {
-          nextIndex = (nextIndex + 1) % gameState.players.length;
-          attempts++;
-        }
-      }
-
-      gameState.currentPlayerIndex = nextIndex;
-      gameState.currentRoundThrows = [];
-      gameState.isFinished = false;
-      gameState.acknowledgedPlaces = gameState.placements.length;
-      saveState();
-      renderGame();
-    }
-
-    // End Game
-    function endGame() {
-      gameState = null;
-      saveState();
-      renderSetup();
-    }
-
-    // Render Functions
-    function renderSetup() {
-      document.getElementById('setup-screen').classList.remove('hidden');
-      document.getElementById('game-screen').classList.add('hidden');
-      document.getElementById('edit-dialog').classList.add('hidden');
-
-      // Game grid
-      const gameGrid = document.getElementById('game-grid');
-      gameGrid.innerHTML = '';
-      Object.entries(GAME_NAMES).forEach(([type, name]) => {
-        const btn = document.createElement('button');
-        btn.className = `game-btn ${selectedGame === type ? 'selected' : ''}`;
-        btn.textContent = name;
-        btn.onclick = () => {
-          selectedGame = type;
-          renderSetup();
-        };
-        gameGrid.appendChild(btn);
-      });
-
-      // Player list
-      document.getElementById('player-count').textContent = playerNames.length;
-      const playerList = document.getElementById('player-list');
-      playerList.innerHTML = '';
-      playerNames.forEach((name, i) => {
-        const item = document.createElement('div');
-        item.className = 'player-item';
-        item.innerHTML = `
-          <div class="player-color" style="background: ${PLAYER_COLORS[i]}"></div>
-          <input type="text" value="${name}" placeholder="Gracz ${i + 1}" data-index="${i}">
-        `;
-        item.querySelector('input').onchange = (e) => {
-          playerNames[i] = e.target.value;
-        };
-        playerList.appendChild(item);
-      });
-
-      // Start button
-      const startBtn = document.getElementById('start-btn');
-      startBtn.disabled = !selectedGame || playerNames.some(n => !n.trim());
-    }
-
-    function renderGame() {
-      if (!gameState) {
-        renderSetup();
-        return;
-      }
-
-      document.getElementById('setup-screen').classList.add('hidden');
-      document.getElementById('game-screen').classList.remove('hidden');
-
-      const placements = gameState.placements || [];
-      const finishedPlayerIds = gameState.finishedPlayerIds || [];
-      const acknowledgedPlaces = gameState.acknowledgedPlaces || 0;
-      const remainingPlayers = gameState.players.filter(p => !finishedPlayerIds.includes(p.id));
-      const hasMultiplePlayers = gameState.players.length > 2;
-      const canContinue = hasMultiplePlayers && remainingPlayers.length > 1;
-      const hasNewPlacements = placements.length > acknowledgedPlaces;
-      const latestWinner = hasNewPlacements
-        ? gameState.players.find(p => p.id === placements[placements.length - 1]?.playerId)
-        : null;
-
-      // Show continue dialog
-      if (latestWinner && canContinue && !gameState.isFinished) {
-        const place = placements.find(p => p.playerId === latestWinner.id)?.place || 1;
-        document.getElementById('game-screen').innerHTML = `
-          <div class="continue-dialog">
-            <div class="medal-icon">🏅</div>
-            <div class="continue-place">${place}. miejsce</div>
-            <div class="continue-name">${latestWinner.name}</div>
-            <p class="continue-text">Pozostało ${remainingPlayers.length} graczy. Kontynuować grę o kolejne miejsca?</p>
-            <div class="continue-buttons">
-              <button class="btn btn-primary" onclick="continueGame()">▶ Kontynuuj grę</button>
-              <button class="btn btn-outline" onclick="endGame()">Zakończ grę</button>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      // Show final results
-      if (gameState.isFinished) {
-        let placementHtml = '';
-        placements.forEach((p) => {
-          const player = gameState.players.find(pl => pl.id === p.playerId);
-          placementHtml += `
-            <div class="placement-item ${p.place === 1 ? 'first' : ''}">
-              <div class="placement-info">
-                <span class="placement-number ${p.place === 1 ? 'first' : ''}">${p.place}.</span>
-                <span class="placement-name">${player?.name}</span>
-              </div>
-              ${p.place === 1 ? '🏆' : ''}
-            </div>
-          `;
         });
+    });
+    const sorted = Object.entries(stats).sort((a,b) => (b[1].games + b[1].tour) - (a[1].games + a[1].tour));
+    $('statsContent').innerHTML = `<table class="stats-table"><tr><th>Gracz</th><th>Mecze</th><th>Turnieje</th></tr>${sorted.map(([name, data]) => `<tr><td><b>${name}</b></td><td>${data.games}</td><td>${data.tour}</td></tr>`).join('')}</table>` || 'Brak statystyk.';
+    $('statsView').style.display = 'block';
+}
 
-        document.getElementById('game-screen').innerHTML = `
-          <div class="results-screen">
-            <div class="trophy-icon">🏆</div>
-            <h1 class="results-title">Wyniki końcowe</h1>
-            <div class="placement-list">${placementHtml}</div>
-            <button class="btn btn-primary" style="width: 100%; max-width: 300px; height: 56px; font-size: 20px;" onclick="endGame()">Nowa gra</button>
-          </div>
-        `;
-        return;
-      }
-
-      // Normal game view
-      const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-      const hasThreeThrows = gameState.currentRoundThrows.length >= 3;
-      const currentPlayerFinished = finishedPlayerIds.includes(currentPlayer.id);
-
-      document.getElementById('game-screen').innerHTML = `
-        <div class="game-header">
-          <div>
-            <h1 id="game-title">${GAME_NAMES[gameState.type]}</h1>
-            <p>Tura: <span id="current-player-name">${currentPlayer.name}</span></p>
-          </div>
-          <button class="close-btn" onclick="endGame()">✕</button>
-        </div>
-
-        <div class="player-scores" id="player-scores"></div>
-
-        <div class="input-toggle">
-          <button class="btn btn-outline ${inputMode === 'buttons' ? 'active' : ''}" onclick="setInputMode('buttons')">⊞ Przyciski</button>
-          <button class="btn btn-outline ${inputMode === 'dartboard' ? 'active' : ''}" onclick="setInputMode('dartboard')">◎ Tarcza</button>
-        </div>
-
-        <div class="input-area" id="input-area"></div>
-
-        <div class="action-bar">
-          <button class="btn btn-outline" onclick="undoLastThrow()" ${gameState.currentRoundThrows.length === 0 ? 'disabled' : ''}>↶ Cofnij</button>
-          <button class="btn btn-primary" onclick="nextPlayer()">▶ Następny</button>
-        </div>
-      `;
-
-      // Player scores
-      const scoresEl = document.getElementById('player-scores');
-      gameState.players.forEach((player, index) => {
-        const isCurrentPlayer = index === gameState.currentPlayerIndex;
-        const isFinished = finishedPlayerIds.includes(player.id);
-        const placement = placements.find(p => p.playerId === player.id);
-
-        let scoreDisplay = '';
-        if (gameState.type === 'around-the-clock') {
-          scoreDisplay = player.clockPosition === 21 ? 'BULL' : player.clockPosition?.toString() || '1';
-        } else if (gameState.type === 'cricket') {
-          const cricketHtml = ['20', '19', '18', '17', '16', '15', 'bull'].map(seg => {
-            const marks = player.cricketMarks?.[seg] || 0;
-            const display = marks === 0 ? '' : marks === 1 ? '/' : marks === 2 ? 'X' : '⊗';
-            return `<div class="cricket-mark"><div class="cricket-mark-label">${seg === 'bull' ? 'B' : seg}</div><div class="cricket-mark-value">${display}</div></div>`;
-          }).join('');
-          scoreDisplay = `<div class="cricket-marks">${cricketHtml}</div>`;
-        } else {
-          scoreDisplay = `<div class="player-score ${isCurrentPlayer ? 'current' : ''}">${player.score}</div>`;
-        }
-
-        let throwsHtml = '';
-        if (isCurrentPlayer && !isFinished) {
-          const throws = gameState.currentRoundThrows.map((t, i) => {
-            const prefix = t.multiplier > 1 ? (t.multiplier === 2 ? 'D' : 'T') : '';
-            return `<span class="throw-tag" onclick="openEditDialog(${i})">${prefix}${t.value} ✎</span>`;
-          }).join('');
-          const empties = Array(Math.max(0, 3 - gameState.currentRoundThrows.length)).fill('<span class="throw-tag empty">-</span>').join('');
-          throwsHtml = `<div class="current-throws">${throws}${empties}</div>`;
-        }
-
-        let badge = '';
-        if (isFinished && placement) {
-          badge = `<div class="placement-badge">${placement.place === 1 ? '🏆' : placement.place}</div>`;
-        } else {
-          badge = `<div class="player-badge" style="background: ${PLAYER_COLORS[index]}"></div>`;
-        }
-
-        scoresEl.innerHTML += `
-          <div class="player-score-card ${isCurrentPlayer ? 'current' : ''} ${isFinished ? 'finished' : ''}" style="${isCurrentPlayer && !isFinished ? 'border-color: ' + PLAYER_COLORS[index] : ''}">
-            <div class="player-info">
-              ${badge}
-              <div>
-                <div class="player-name">${player.name}${isFinished ? `<span class="player-placement-text"> (${placement?.place}. miejsce)</span>` : ''}</div>
-                ${throwsHtml}
-              </div>
-            </div>
-            ${scoreDisplay}
-          </div>
-        `;
-      });
-
-      // Input area
-      const inputArea = document.getElementById('input-area');
-      if (hasThreeThrows || currentPlayerFinished) {
-        inputArea.innerHTML = `
-          <div class="alert">
-            <span class="alert-icon">⚠️</span>
-            <span class="alert-text">${currentPlayerFinished ? "Ten gracz już zakończył grę. Kliknij 'Następny'." : "Oddano 3 rzuty! Kliknij 'Następny' aby zmienić gracza."}</span>
-          </div>
-        `;
-      } else if (inputMode === 'dartboard') {
-        renderDartboard(inputArea);
-      } else {
-        renderScoreButtons(inputArea);
-      }
-    }
-
-    function setInputMode(mode) {
-      inputMode = mode;
-      renderGame();
-    }
-
-    function renderScoreButtons(container) {
-      let html = `
-        <div class="score-mode-toggle">
-          <button class="btn btn-outline ${scoreMode === 'numbers' ? 'active' : ''}" onclick="setScoreMode('numbers')">Wszystkie</button>
-          <button class="btn btn-outline ${scoreMode === 'keypad' ? 'active' : ''}" onclick="setScoreMode('keypad')">Klawiatura</button>
-        </div>
-      `;
-
-      if (scoreMode === 'numbers') {
-        html += `
-          <div class="multiplier-toggle">
-            <button class="btn btn-outline ${multiplier === 1 ? 'active' : ''}" onclick="setMultiplier(1)">Single</button>
-            <button class="btn btn-outline ${multiplier === 2 ? 'active' : ''}" onclick="setMultiplier(2)">Double</button>
-            <button class="btn btn-outline ${multiplier === 3 ? 'active' : ''}" onclick="setMultiplier(3)">Triple</button>
-          </div>
-          <div class="score-grid">
-            ${DART_SEGMENTS.map(v => `<button class="score-btn" onclick="addThrow(${v}, ${multiplier})">${v}</button>`).join('')}
-          </div>
-          <div class="special-scores">
-            <button class="score-btn btn-25" onclick="addThrow(25, 1)">25</button>
-            <button class="score-btn btn-bull" onclick="addThrow(25, 2)">BULL</button>
-            <button class="score-btn" onclick="addThrow(0, 1)">MISS</button>
-          </div>
-        `;
-      } else {
-        html += `
-          <div class="keypad-display">
-            <span class="keypad-value">${keypadValue || '0'}</span>
-          </div>
-          <div class="keypad-grid">
-            ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="keypad-btn" onclick="keypadClick(${n})">${n}</button>`).join('')}
-            <button class="keypad-btn danger" onclick="keypadClear()">C</button>
-            <button class="keypad-btn" onclick="keypadClick(0)">0</button>
-            <button class="keypad-btn primary" onclick="keypadSubmit()">OK</button>
-          </div>
-        `;
-      }
-
-      container.innerHTML = html;
-    }
-
-    function setScoreMode(mode) {
-      scoreMode = mode;
-      keypadValue = '';
-      renderGame();
-    }
-
-    function setMultiplier(m) {
-      multiplier = m;
-      renderGame();
-    }
-
-    function keypadClick(n) {
-      if (keypadValue.length < 3) {
-        keypadValue += n;
-        renderGame();
-      }
-    }
-
-    function keypadClear() {
-      keypadValue = '';
-      renderGame();
-    }
-
-    function keypadSubmit() {
-      const value = parseInt(keypadValue);
-      if (!isNaN(value) && value >= 0 && value <= 180) {
-        addThrow(value, 1);
-      }
-      keypadValue = '';
-    }
-
-    function renderDartboard(container) {
-      const size = 340;
-      const center = size / 2;
-      const segmentAngle = 360 / 20;
-
-      const rings = [
-        { name: 'double', inner: 130, outer: 145, multiplier: 2 },
-        { name: 'outer-single', inner: 85, outer: 130, multiplier: 1 },
-        { name: 'triple', inner: 70, outer: 85, multiplier: 3 },
-        { name: 'inner-single', inner: 25, outer: 70, multiplier: 1 },
-      ];
-
-      function getSegmentPath(index, innerR, outerR) {
-        const startAngle = ((index * segmentAngle - 99) * Math.PI) / 180;
-        const endAngle = (((index + 1) * segmentAngle - 99) * Math.PI) / 180;
-        const x1 = center + innerR * Math.cos(startAngle);
-        const y1 = center + innerR * Math.sin(startAngle);
-        const x2 = center + outerR * Math.cos(startAngle);
-        const y2 = center + outerR * Math.sin(startAngle);
-        const x3 = center + outerR * Math.cos(endAngle);
-        const y3 = center + outerR * Math.sin(endAngle);
-        const x4 = center + innerR * Math.cos(endAngle);
-        const y4 = center + innerR * Math.sin(endAngle);
-        return `M ${x1} ${y1} L ${x2} ${y2} A ${outerR} ${outerR} 0 0 1 ${x3} ${y3} L ${x4} ${y4} A ${innerR} ${innerR} 0 0 0 ${x1} ${y1}`;
-      }
-
-      function getColor(index, ringName) {
-        const isGreen = index % 2 === 0;
-        if (ringName === 'double' || ringName === 'triple') {
-          return isGreen ? '#0d9653' : '#d32f2f';
-        }
-        return isGreen ? '#f5e6c8' : '#1a1a1a';
-      }
-
-      let segments = '';
-      rings.forEach(ring => {
-        DART_SEGMENTS.forEach((value, index) => {
-          segments += `<path d="${getSegmentPath(index, ring.inner, ring.outer)}" 
-            fill="${getColor(index, ring.name)}" 
-            stroke="#a0a0a0" stroke-width="0.5" 
-            style="cursor:pointer" 
-            onclick="addThrow(${value}, ${ring.multiplier})"/>`;
-        });
-      });
-
-      let numbers = '';
-      DART_SEGMENTS.forEach((value, index) => {
-        const angle = ((index * segmentAngle - 90) * Math.PI) / 180;
-        const x = center + 157 * Math.cos(angle);
-        const y = center + 157 * Math.sin(angle);
-        numbers += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" 
-          fill="#fafafa" font-size="14" font-weight="bold" style="pointer-events:none">${value}</text>`;
-      });
-
-      container.innerHTML = `
-        <div class="dartboard-container">
-          <svg width="${size}" height="${size}" id="dartboard" style="box-shadow: 0 10px 40px rgba(0,0,0,0.5)">
-            <circle cx="${center}" cy="${center}" r="${center - 2}" fill="#1a1a1a"/>
-            <circle cx="${center}" cy="${center}" r="145" fill="#1a1a1a"/>
-            ${segments}
-            <circle cx="${center}" cy="${center}" r="25" fill="#0d9653" stroke="#a0a0a0" stroke-width="0.5" style="cursor:pointer" onclick="addThrow(25, 1)"/>
-            <circle cx="${center}" cy="${center}" r="10" fill="#d32f2f" stroke="#a0a0a0" stroke-width="0.5" style="cursor:pointer" onclick="addThrow(25, 2)"/>
-            ${numbers}
-          </svg>
-          <button class="miss-btn" onclick="addThrow(0, 1)">MISS</button>
-        </div>
-      `;
-    }
-
-    function openEditDialog(index) {
-      editingThrowIndex = index;
-      document.getElementById('edit-throw-index').textContent = index + 1;
-      document.getElementById('edit-dialog').classList.remove('hidden');
-      renderEditButtons();
-    }
-
-    function closeEditDialog() {
-      editingThrowIndex = null;
-      document.getElementById('edit-dialog').classList.add('hidden');
-    }
-
-    function renderEditButtons() {
-      const container = document.getElementById('edit-score-buttons');
-      container.innerHTML = `
-        <div class="multiplier-toggle">
-          <button class="btn btn-outline ${multiplier === 1 ? 'active' : ''}" onclick="setMultiplier(1); renderEditButtons();">Single</button>
-          <button class="btn btn-outline ${multiplier === 2 ? 'active' : ''}" onclick="setMultiplier(2); renderEditButtons();">Double</button>
-          <button class="btn btn-outline ${multiplier === 3 ? 'active' : ''}" onclick="setMultiplier(3); renderEditButtons();">Triple</button>
-        </div>
-        <div class="score-grid">
-          ${DART_SEGMENTS.map(v => `<button class="score-btn" onclick="submitEdit(${v}, ${multiplier})">${v}</button>`).join('')}
-        </div>
-        <div class="special-scores">
-          <button class="score-btn btn-25" onclick="submitEdit(25, 1)">25</button>
-          <button class="score-btn btn-bull" onclick="submitEdit(25, 2)">BULL</button>
-          <button class="score-btn" onclick="submitEdit(0, 1)">MISS</button>
-        </div>
-      `;
-    }
-
-    function submitEdit(value, mult) {
-      if (editingThrowIndex !== null) {
-        editThrow(editingThrowIndex, value, mult);
-        closeEditDialog();
-      }
-    }
-
-    // Event Listeners
-    document.getElementById('add-player').onclick = () => {
-      if (playerNames.length < 6) {
-        playerNames.push(`Gracz ${playerNames.length + 1}`);
-        renderSetup();
-      }
-    };
-
-    document.getElementById('remove-player').onclick = () => {
-      if (playerNames.length > 1) {
-        playerNames.pop();
-        renderSetup();
-      }
-    };
-
-    document.getElementById('start-btn').onclick = () => {
-      if (selectedGame && playerNames.every(n => n.trim())) {
-        startGame(selectedGame, playerNames);
-      }
-    };
-
-    document.getElementById('close-edit-dialog').onclick = closeEditDialog;
-
-    // Init
-    loadState();
-    if (gameState) {
-      renderGame();
+function addThrow(pts, isDouble = false) {
+    if (turnThrows.length >= 3 || legWinner) return;
+    const p = gameState.players[gameState.currentPlayer];
+    const newScore = p.score - pts;
+    let bust = (newScore < 0) || (newScore === 1 && gameState.doubleOut) || (newScore === 0 && gameState.doubleOut && !isDouble);
+    
+    p.dartsThrown++;
+    if (bust) {
+        p.score = p.startScore; turnThrows = [{pts:0, bust:true},{pts:0, bust:true},{pts:0, bust:true}]; 
+        triggerNextTurnUI();
     } else {
-      renderSetup();
+        turnThrows.push({ pts, isDouble });
+        p.score = newScore; p.totalPoints += pts;
+        if (newScore === 0) {
+            p.legsWon++;
+            if (gameState.tourMode && p.legsWon < gameState.legsToWin) {
+                legWinner = p.name; triggerNextTurnUI();
+            } else {
+                p.isOut = true; gameState.finishedPlayers++; p.rank = gameState.finishedPlayers;
+                triggerNextTurnUI();
+            }
+        }
     }
-  </script>
+    refresh();
+    if (turnThrows.length === 3) triggerNextTurnUI();
+}
+
+function triggerNextTurnUI() {
+    $('nextTurnPanel').style.display = 'flex';
+    $('bigNextBtn').classList.remove('ready');
+    clearTimeout(safetyTimer);
+    safetyTimer = setTimeout(() => { $('bigNextBtn').classList.add('ready'); }, 600);
+}
+
+function finishTurn() {
+    if (!$('bigNextBtn').classList.contains('ready')) return;
+    $('nextTurnPanel').style.display = 'none';
+    if (legWinner) {
+        gameState.players.forEach(p => { p.score = gameState.gameType; p.startScore = gameState.gameType; });
+        legWinner = null; gameState.currentPlayer = 0;
+    } else {
+        const p = gameState.players[gameState.currentPlayer];
+        p.startScore = p.score; p.turns++;
+        let active = gameState.players.filter(x => !x.isOut);
+        if (active.length > 0) {
+            do { gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length; } 
+            while (gameState.players[gameState.currentPlayer].isOut && active.length > 0);
+        } else { endGameAndSave(); }
+    }
+    turnThrows = []; refresh(); centerActivePlayer();
+}
+
+function endGameAndSave() {
+    saveFinalRecord();
+    localStorage.removeItem(STATE_KEY);
+    location.reload();
+}
+
+function undoLastThrow() {
+    if (turnThrows.length === 0) return;
+    $('nextTurnPanel').style.display = 'none';
+    const p = gameState.players[gameState.currentPlayer];
+    if (turnThrows.some(t => t.bust)) {
+        turnThrows = []; p.score = p.startScore; p.dartsThrown -= 3;
+    } else {
+        const last = turnThrows.pop();
+        p.score += last.pts; p.totalPoints -= last.pts; p.dartsThrown--;
+        if(p.score > 0) { if(p.isOut) gameState.finishedPlayers--; p.isOut = false; p.rank = 0; }
+        legWinner = null;
+    }
+    refresh();
+}
+
+function createBtn(val, container, cl = '', label = '') {
+    const btn = document.createElement('button');
+    btn.className = 'btn-dart ' + cl; btn.textContent = label || val;
+    btn.onpointerdown = (e) => {
+        touchStart = { x: e.clientX, y: e.clientY }; movedDist = 0;
+        if (val === 0 || val === 50 || val === 25) return;
+        activeBase = val;
+        longPressTimer = setTimeout(() => { if (movedDist < 10) showPop(e.clientX, e.clientY); }, 400);
+    };
+    btn.onpointerup = (e) => {
+        clearTimeout(longPressTimer);
+        if (movedDist > 10) return;
+        if (val === 0 || val === 50 || val === 25) addThrow(val, val === 50);
+        else if ($('floatingMultipliers').style.display !== 'flex') addThrow(val);
+    };
+    container.appendChild(btn);
+}
+
+function showPop(x, y) {
+    const pop = $('floatingMultipliers'); pop.style.display = 'flex';
+    pop.style.left = Math.min(Math.max(x, 110), window.innerWidth - 110) + 'px';
+    pop.style.top = (y < 120 ? y + 45 : y - 45) + 'px';
+    pop.style.transform = y < 120 ? 'translateX(-50%)' : 'translate(-50%, -100%)';
+}
+function hidePop() { $('floatingMultipliers').style.display = 'none'; activeBase = null; }
+function handleMult(m) { if (activeBase) addThrow(activeBase * m, m === 2); hidePop(); }
+
+function refresh() {
+    const sb = $('scoreboard'); sb.innerHTML = '';
+    const startSpacer = document.createElement('div'); startSpacer.className = 'spacer'; sb.appendChild(startSpacer);
+    gameState.players.forEach((p, i) => {
+        const div = document.createElement('div');
+        div.className = `player ${i === gameState.currentPlayer ? 'current' : ''} ${p.isOut ? 'finished' : ''}`;
+        div.innerHTML = `<div>${p.name}</div><div class="player-score">${p.isOut?'🏆':p.score}</div>${gameState.tourMode ? `<div class="legs-count">L: ${p.legsWon}</div>` : ''}<small>🎯 ${p.dartsThrown}</small>`;
+        sb.appendChild(div);
+    });
+    const endSpacer = document.createElement('div'); endSpacer.className = 'spacer'; sb.appendChild(endSpacer);
+    $('currentPlayerName').textContent = legWinner ? `KONIEC LEGA: ${legWinner}` : gameState.players[gameState.currentPlayer].name;
+    $('turnTotal').textContent = turnThrows.reduce((a,b)=>a+b.pts, 0);
+    $('throwCount').textContent = `${turnThrows.length}/3`;
+    $('throwHistory').textContent = turnThrows.map(t => t.pts).join(' • ');
+
+    const active = gameState.players.filter(x => !x.isOut);
+    const area = $('endGameArea'); area.innerHTML = '';
+    if (active.length === 1 && gameState.players.length > 1) {
+        const b = document.createElement('button');
+        b.className = 'btn-ctrl'; b.style.background = '#e74c3c'; b.style.width = '100%'; b.textContent = "ZAKOŃCZ GRĘ";
+        b.onclick = () => { if(confirm("Zakończyć i zapisać wynik?")) endGameAndSave(); };
+        area.appendChild(b);
+    }
+    localStorage.setItem(STATE_KEY, JSON.stringify(gameState));
+}
+
+function centerActivePlayer() {
+    setTimeout(() => {
+        const activeEl = document.querySelector('.player.current');
+        if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }, 100);
+}
+
+function loadGameUI() {
+    $('setup').style.display = 'none'; $('game').style.display = 'block';
+    const container = $('dartButtons'); container.innerHTML = '';
+    for (let i = 1; i <= 20; i++) createBtn(i, container);
+    createBtn(25, container, 'btn-spec', '25');
+    createBtn(50, container, 'btn-bull', 'BULL');
+    createBtn(0, container, 'btn-zero', '0 (PUDŁO)');
+    refresh(); centerActivePlayer();
+}
+
+function confirmExit() { if(confirm("Wyjść do menu?")) { localStorage.removeItem(STATE_KEY); location.reload(); } }
+window.onload = () => { initPlayerInputs(); const s = localStorage.getItem(STATE_KEY); if(s){gameState=JSON.parse(s); loadGameUI();}};
+</script>
 </body>
 </html>
